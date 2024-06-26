@@ -1,0 +1,42 @@
+fetch_seqs:
+    cat << EOF  | tr " " "\t" > regions_interest
+    LAIR hg38_tagged.fa chr19_hg38 54150000 54730000
+    EOF
+    mkdir -p results
+    \time -v pgr-fetch-seqs /wd/pgr-tk-demo-data/data/pgr-tk-HGRP-y1-evaluation-set-v0 \
+        -r ./regions_interest > ./results/ROI_seq.fa
+    \time -v pgr-query /wd/pgr-tk-demo-data/data/pgr-tk-HGRP-y1-evaluation-set-v0 \
+        ./results/ROI_seq.fa ./results/pg_seqs --merge-range-tol 100000
+    python filter.py > LAIR_HPRC.fa
+
+annotate_protein:
+    python annotate_proteins.py
+
+LAIR_plot:
+    pgr-pbundle-decomp LAIR_HPRC.fa -w 80 -r 8 --min-span 32 --bundle-length-cutoff 1000 --min-branch-size 4 --min-cov 0 LAIR_HPRC
+
+    pgr-pbundle-bed2dist LAIR_HPRC.bed LAIR_HPRC. -l
+
+    pgr-pbundle-bed2svg LAIR_HPRC.bed LAIR_HPRC_rank1. --html --ddg-file LAIR_HPRC.ddg --offsets LAIR_HPRC.offset --track-panel-width 800 --track-range 650000 --annotation-region-bedfile results/all_annotation_rank1.bed --annotation-region-stroke-width 8
+
+    pgr-pbundle-bed2svg LAIR_HPRC.bed LAIR_HPRC. --html --ddg-file LAIR_HPRC.ddg --offsets LAIR_HPRC.offset --track-panel-width 800 --track-range 650000 --annotation-region-bedfile results/all_annotation.bed --annotation-region-stroke-width 8
+
+LAIR_gene_plot:
+    python get_region_analysis.py
+    python get_gene_analysis.py
+    python get_gene_analysis_sparse.py
+    python get_CDS_analysis.py
+    python get_PROT_analysis.py
+
+get_consensus:
+    python get_CDS_consensus.py
+    python get_DNA_consensus.py
+
+count_contigs:
+    ls  results/target_seq_* | awk '{print "fastalength "$0" | wc"}' | bash | awk '{print $1}' | sort | uniq -c
+
+count_contigs_2:
+    ls  results/target_seq_* | grep -v alt | grep -v hg19 | grep -v hg38 | grep -v chm13|   awk '{print "fastalength "$0" | wc"}' | bash | awk '{print $1}' | sort | uniq -c
+
+all: annotate_protein LAIR_plot LAIR_gene_plot get_consensus
+
