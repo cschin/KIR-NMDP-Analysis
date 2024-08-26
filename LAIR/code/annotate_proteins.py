@@ -43,11 +43,8 @@ for key in haplotype_to_seq:
                 seq = ATN
                 seq = seq.replace("-", "")
 
-                exon_introns = partition_by_case(seq)
-                exons = enumerate([s for s in exon_introns if s[0].isupper()])
-                introns = enumerate([s for s in exon_introns if s[0].islower()])
 
-                seq = ATN.upper()
+                #seq = ATN.upper()
                 continue
 
             if r[0] == "##PAF":
@@ -79,7 +76,7 @@ for key in haplotype_to_seq:
                     out_seq_file_rank1 = out_seq_files_rank1[target]
                     DNA_seq = seq
                     print(">{}:{}-{} {}".format(ctg, r[3], r[4], r[8]), file=out_seq_file_rank1)
-                    print(DNA_seq, file=out_seq_file_rank1)
+                    print(DNA_seq.upper(), file=out_seq_file_rank1)
 
                     out_cds_file_rank1 = out_cds_files_rank1[target]
                     print(">{}:{}-{} {}".format(ctg, r[3], r[4], r[8]), file=out_cds_file_rank1)
@@ -90,11 +87,14 @@ for key in haplotype_to_seq:
                     print(STA, file=out_prot_file_rank1)
 
                     out_gene_structure_file_rank1 = out_gene_structure_files_rank1[target]
+                    exon_introns = partition_by_case(seq)
+                    exons = list(enumerate([s for s in exon_introns if s[0].isupper()]))
+                    introns = list(enumerate([s for s in exon_introns if s[0].islower()]))
                     print("# {}:{}-{} {}".format(ctg, r[3], r[4], r[8]), file=out_gene_structure_file_rank1)
                     for rank, s in exons:
-                        print("exon {} {}".format(rank, s), file=out_gene_structure_file_rank1)
+                        print("exon {} {}".format(rank + 1, s), file=out_gene_structure_file_rank1)
                     for rank, s in introns:
-                        print("introns {} {}".format(rank, s), file=out_gene_structure_file_rank1)
+                        print("intron {} {}".format(rank + 1, s), file=out_gene_structure_file_rank1)
 
 
 
@@ -107,7 +107,7 @@ for key in haplotype_to_seq:
                 out_seq_file = out_seq_files[target]
                 DNA_seq = seq
                 print(">{}:{}-{} {}".format(ctg, r[3], r[4], r[8]), file=out_seq_file)
-                print(DNA_seq, file=out_seq_file)
+                print(DNA_seq.upper(), file=out_seq_file)
 
                 out_cds_file = out_cds_files[target]
                 print(">{}:{}-{} {}".format(ctg, r[3], r[4], r[8]), file=out_cds_file)
@@ -118,11 +118,15 @@ for key in haplotype_to_seq:
                 print(STA, file=out_prot_file)
 
                 out_gene_structure_file = out_gene_structure_files[target]
+                exon_introns = partition_by_case(seq)
+                exons = list(enumerate([s for s in exon_introns if s[0].isupper()]))
+                introns = list(enumerate([s for s in exon_introns if s[0].islower()]))
                 print("# {}:{}-{} {}".format(ctg, r[3], r[4], r[8]), file=out_gene_structure_file)
                 for rank, s in exons:
-                    print("exon {} {}".format(rank, s), file=out_gene_structure_file)
+                    print("exon {} {}".format(rank + 1, s), file=out_gene_structure_file)
                 for rank, s in introns:
-                    print("introns {} {}".format(rank, s), file=out_gene_structure_file)
+                    print("intron {} {}".format(rank + 1, s), file=out_gene_structure_file)
+                
 
 out_bed_file.close()
 out_bed_file_rank1.close()
@@ -130,3 +134,5 @@ out_bed_file_rank1.close()
 [f.close() for f in out_seq_files_rank1.values()]
 [f.close() for f in out_cds_files.values()]
 [f.close() for f in out_cds_files_rank1.values()]
+[f.close() for f in out_gene_structure_files.values()]
+[f.close() for f in out_gene_structure_files_rank1.values()]
